@@ -1,0 +1,269 @@
+.admin-dashboard {
+  min-height: 100vh;
+
+  display: flex;
+
+  background-color: #f8fafc;
+}
+
+
+/* Sidebar */
+
+.admin-sidebar {
+  width: 220px;
+  min-height: 100vh;
+
+  padding: 25px 15px;
+
+  display: flex;
+  flex-direction: column;
+
+  background-color: #111827;
+}
+
+.admin-sidebar h2 {
+  margin-bottom: 30px;
+  padding-left: 10px;
+
+  color: #60a5fa;
+
+  font-size: 20px;
+}
+
+.admin-sidebar nav {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.admin-sidebar nav a {
+  padding: 11px;
+
+  border-radius: 5px;
+
+  color: #d1d5db;
+
+  text-decoration: none;
+
+  font-size: 14px;
+}
+
+.admin-sidebar nav a:hover,
+.admin-sidebar nav a.active {
+  background-color: #2563eb;
+
+  color: white;
+}
+
+
+/* Logout */
+
+.admin-logout {
+  margin-top: auto;
+
+  padding: 10px;
+
+  border: 1px solid #374151;
+  border-radius: 5px;
+
+  background-color: transparent;
+
+  color: #d1d5db;
+
+  cursor: pointer;
+}
+
+
+/* Main */
+
+.admin-main {
+  flex: 1;
+}
+
+
+/* Header */
+
+.admin-header {
+  min-height: 75px;
+
+  padding: 15px 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background-color: white;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-header h1 {
+  margin-bottom: 4px;
+
+  color: #111827;
+
+  font-size: 22px;
+}
+
+.admin-header p {
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
+.admin-user {
+  padding: 8px 14px;
+
+  border-radius: 5px;
+
+  background-color: #eff6ff;
+
+  color: #2563eb;
+
+  font-size: 14px;
+}
+
+
+/* Content */
+
+.admin-content {
+  padding: 25px 30px;
+}
+
+
+/* Statistics */
+
+.admin-stats {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 15px;
+
+  margin-bottom: 25px;
+}
+
+.admin-stat {
+  padding: 18px;
+
+  background-color: white;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 7px;
+}
+
+.admin-stat span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
+.admin-stat strong {
+  color: #111827;
+
+  font-size: 25px;
+}
+
+
+/* Recent Complaints */
+
+.recent-complaints {
+  padding: 20px;
+
+  background-color: white;
+
+  border: 1px solid #e5e7eb;
+
+  border-radius: 7px;
+}
+
+.section-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+.section-header h2 {
+  color: #111827;
+
+  font-size: 17px;
+}
+
+.section-header button {
+  border: none;
+
+  background: none;
+
+  color: #2563eb;
+
+  cursor: pointer;
+
+  font-size: 13px;
+}
+
+
+/* Complaint rows */
+
+.complaint-list {
+  width: 100%;
+}
+
+.complaint-row {
+  display: grid;
+
+  grid-template-columns: 1.5fr 1.5fr 1fr;
+
+  gap: 15px;
+
+  padding: 13px 8px;
+
+  border-bottom: 1px solid #f1f5f9;
+
+  color: #374151;
+
+  font-size: 13px;
+}
+
+.complaint-row:last-child {
+  border-bottom: none;
+}
+
+
+/* Status */
+
+.status {
+  width: fit-content;
+
+  padding: 4px 8px;
+
+  border-radius: 12px;
+
+  font-size: 11px;
+}
+
+.status.pending {
+  background-color: #fef3c7;
+
+  color: #92400e;
+}
+
+.status.progress {
+  background-color: #dbeafe;
+
+  color: #1e40af;
+}
+
+.status.resolved {
+  background-color: #dcfce7;
+
+  color: #166534;
+}
