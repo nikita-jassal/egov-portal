@@ -1,7 +1,91 @@
+
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./CitizenDashboard.css";
-import { Link } from "react-router-dom";
 
 function CitizenDashboard() {
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState(null);
+  const [complaints, setComplaints] = useState([]);
+
+  useEffect(() => {
+    // LocalStorage se user information
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+
+    fetchComplaints();
+  }, []);
+
+  const fetchComplaints = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/complaints/my",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setComplaints(data);
+      } else {
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.error("Dashboard error:", error);
+    }
+  };
+
+  // Complaint counts
+  const totalComplaints = complaints.length;
+
+  const pendingComplaints = complaints.filter(
+    (complaint) => complaint.status === "Pending"
+  ).length;
+
+  const inProgressComplaints = complaints.filter(
+    (complaint) => complaint.status === "In Progress"
+  ).length;
+
+  const resolvedComplaints = complaints.filter(
+    (complaint) => complaint.status === "Resolved"
+  ).length;
+
+  // Recent 3 complaints
+  const recentComplaints = complaints.slice(0, 3);
+
+  // Date format
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  // Logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    navigate("/");
+  };
+
   return (
     <div className="citizen-dashboard">
 
@@ -14,16 +98,16 @@ function CitizenDashboard() {
 
         <nav className="sidebar-nav">
 
-          <a href="#" className="active">
+          <Link to="/citizen/dashboard" className="active">
             Dashboard
-          </a>
+          </Link>
 
           <Link to="/citizen/submit-complaint">
-           Submit Complaint
+            Submit Complaint
           </Link>
 
           <Link to="/citizen/my-complaints">
-           My Complaints
+            My Complaints
           </Link>
 
           <a href="#">
@@ -32,7 +116,10 @@ function CitizenDashboard() {
 
         </nav>
 
-        <button className="logout-btn">
+        <button
+          className="logout-btn"
+          onClick={handleLogout}
+        >
           Logout
         </button>
 
@@ -47,15 +134,25 @@ function CitizenDashboard() {
 
           <div>
             <h1>Dashboard</h1>
-            <p>Welcome back, Citizen</p>
+
+            <p>
+              Welcome back,{" "}
+              {user ? user.name : "Citizen"}
+            </p>
           </div>
 
           <div className="user-info">
+
             <div className="user-avatar">
-              C
+              {user
+                ? user.name.charAt(0).toUpperCase()
+                : "C"}
             </div>
 
-            <span>Citizen</span>
+            <span>
+              {user ? user.name : "Citizen"}
+            </span>
+
           </div>
 
         </header>
@@ -72,22 +169,22 @@ function CitizenDashboard() {
 
             <div className="stat-card">
               <h3>Total Complaints</h3>
-              <p>5</p>
+              <p>{totalComplaints}</p>
             </div>
 
             <div className="stat-card">
               <h3>Pending</h3>
-              <p>2</p>
+              <p>{pendingComplaints}</p>
             </div>
 
             <div className="stat-card">
               <h3>In Progress</h3>
-              <p>1</p>
+              <p>{inProgressComplaints}</p>
             </div>
 
             <div className="stat-card">
               <h3>Resolved</h3>
-              <p>2</p>
+              <p>{resolvedComplaints}</p>
             </div>
 
           </div>
@@ -97,11 +194,15 @@ function CitizenDashboard() {
           <div className="recent-section">
 
             <div className="section-title">
+
               <h2>Recent Complaints</h2>
 
-              <button>
-                View All
-              </button>
+              <Link to="/citizen/my-complaints">
+                <button>
+                  View All
+                </button>
+              </Link>
+
             </div>
 
 
@@ -115,49 +216,50 @@ function CitizenDashboard() {
               </div>
 
 
-              <div className="table-row">
+              {recentComplaints.length === 0 ? (
 
-                <span>Road Damage</span>
+                <div className="table-row">
+                  <span>No complaints yet.</span>
+                </div>
 
-                <span>Public Works</span>
+              ) : (
 
-                <span>18 Aug 2026</span>
+                recentComplaints.map((complaint) => (
 
-                <span className="status pending">
-                  Pending
-                </span>
+                  <div
+                    className="table-row"
+                    key={complaint._id}
+                  >
 
-              </div>
+                    <span>
+                      {complaint.title}
+                    </span>
 
+                    <span>
+                      {complaint.department}
+                    </span>
 
-              <div className="table-row">
+                    <span>
+                      {formatDate(complaint.createdAt)}
+                    </span>
 
-                <span>Water Supply Issue</span>
+                    <span
+                      className={`status ${
+                        complaint.status === "Pending"
+                          ? "pending"
+                          : complaint.status === "In Progress"
+                          ? "progress"
+                          : "resolved"
+                      }`}
+                    >
+                      {complaint.status}
+                    </span>
 
-                <span>Water Department</span>
+                  </div>
 
-                <span>15 Aug 2026</span>
+                ))
 
-                <span className="status resolved">
-                  Resolved
-                </span>
-
-              </div>
-
-
-              <div className="table-row">
-
-                <span>Street Light</span>
-
-                <span>Electricity</span>
-
-                <span>12 Aug 2026</span>
-
-                <span className="status progress">
-                  In Progress
-                </span>
-
-              </div>
+              )}
 
             </div>
 
@@ -176,9 +278,11 @@ function CitizenDashboard() {
               </p>
             </div>
 
-            <button>
-              Submit Complaint
-            </button>
+            <Link to="/citizen/submit-complaint">
+              <button>
+                Submit Complaint
+              </button>
+            </Link>
 
           </div>
 
@@ -191,3 +295,4 @@ function CitizenDashboard() {
 }
 
 export default CitizenDashboard;
+

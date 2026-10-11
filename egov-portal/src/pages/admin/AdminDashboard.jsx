@@ -1,7 +1,116 @@
+
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
-import { Link } from "react-router-dom";
 
 function AdminDashboard() {
+  const navigate = useNavigate();
+
+  const [admin, setAdmin] = useState(null);
+  const [analytics, setAnalytics] = useState({
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    resolved: 0,
+  });
+
+  const [complaints, setComplaints] = useState([]);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+
+    if (savedUser) {
+      setAdmin(JSON.parse(savedUser));
+    }
+
+    fetchAnalytics();
+    fetchComplaints();
+  }, []);
+
+  // Fetch analytics
+  const fetchAnalytics = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/complaints/analytics",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAnalytics(data);
+      } else {
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.error("Analytics error:", error);
+    }
+  };
+
+  // Fetch all complaints
+  const fetchComplaints = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/complaints/all",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setComplaints(data);
+      } else {
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.error("Complaints error:", error);
+    }
+  };
+
+  // Recent 3 complaints
+  const recentComplaints = complaints.slice(0, 3);
+
+  // Logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    navigate("/");
+  };
+
+  // Date format
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="admin-dashboard">
 
@@ -11,7 +120,10 @@ function AdminDashboard() {
         <h2>E-Governance</h2>
 
         <nav>
-          <Link to="/admin/dashboard" className="active">
+          <Link
+            to="/admin/dashboard"
+            className="active"
+          >
             Dashboard
           </Link>
 
@@ -20,7 +132,10 @@ function AdminDashboard() {
           </Link>
         </nav>
 
-        <button className="admin-logout">
+        <button
+          className="admin-logout"
+          onClick={handleLogout}
+        >
           Logout
         </button>
 
@@ -35,11 +150,15 @@ function AdminDashboard() {
 
           <div>
             <h1>Admin Dashboard</h1>
-            <p>Manage citizen complaints</p>
+
+            <p>
+              Welcome back,{" "}
+              {admin ? admin.name : "Admin"}
+            </p>
           </div>
 
           <div className="admin-user">
-            Admin
+            {admin ? admin.name : "Admin"}
           </div>
 
         </header>
@@ -53,22 +172,22 @@ function AdminDashboard() {
 
             <div className="admin-stat">
               <span>Total Complaints</span>
-              <strong>50</strong>
+              <strong>{analytics.total}</strong>
             </div>
 
             <div className="admin-stat">
               <span>Pending</span>
-              <strong>20</strong>
+              <strong>{analytics.pending}</strong>
             </div>
 
             <div className="admin-stat">
               <span>In Progress</span>
-              <strong>15</strong>
+              <strong>{analytics.inProgress}</strong>
             </div>
 
             <div className="admin-stat">
               <span>Resolved</span>
-              <strong>15</strong>
+              <strong>{analytics.resolved}</strong>
             </div>
 
           </div>
@@ -81,52 +200,55 @@ function AdminDashboard() {
 
               <h2>Recent Complaints</h2>
 
-              <button>
-                View All
-              </button>
+              <Link to="/admin/complaints">
+                <button>
+                  View All
+                </button>
+              </Link>
 
             </div>
 
 
             <div className="complaint-list">
 
-              <div className="complaint-row">
+              {recentComplaints.length === 0 ? (
 
-                <span>Road Damage</span>
+                <p>No complaints found.</p>
 
-                <span>Public Works</span>
+              ) : (
 
-                <span className="status pending">
-                  Pending
-                </span>
+                recentComplaints.map((complaint) => (
 
-              </div>
+                  <div
+                    className="complaint-row"
+                    key={complaint._id}
+                  >
 
+                    <span>
+                      {complaint.title}
+                    </span>
 
-              <div className="complaint-row">
+                    <span>
+                      {complaint.department}
+                    </span>
 
-                <span>Water Supply</span>
+                    <span
+                      className={`status ${
+                        complaint.status === "Pending"
+                          ? "pending"
+                          : complaint.status === "In Progress"
+                          ? "progress"
+                          : "resolved"
+                      }`}
+                    >
+                      {complaint.status}
+                    </span>
 
-                <span>Water Department</span>
+                  </div>
 
-                <span className="status progress">
-                  In Progress
-                </span>
+                ))
 
-              </div>
-
-
-              <div className="complaint-row">
-
-                <span>Street Light</span>
-
-                <span>Electricity</span>
-
-                <span className="status resolved">
-                  Resolved
-                </span>
-
-              </div>
+              )}
 
             </div>
 
@@ -141,3 +263,4 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
+

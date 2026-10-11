@@ -1,113 +1,247 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./AllComplaints.css";
 
 function AllComplaints() {
-  const [complaints, setComplaints] = useState([
-    {
-      id: 1,
-      title: "Road Damage",
-      citizen: "Rahul Sharma",
-      department: "Public Works",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      title: "Water Supply Problem",
-      citizen: "Priya Singh",
-      department: "Water Department",
-      status: "In Progress",
-    },
-    {
-      id: 3,
-      title: "Street Light Not Working",
-      citizen: "Amit Kumar",
-      department: "Electricity",
-      status: "Resolved",
-    },
-    {
-      id: 4,
-      title: "Hospital Cleanliness",
-      citizen: "Neha Verma",
-      department: "Health Department",
-      status: "Pending",
-    },
-    {
-      id: 5,
-      title: "School Infrastructure",
-      citizen: "Rohit Kumar",
-      department: "Education Department",
-      status: "In Progress",
-    },
-  ]);
+  const navigate = useNavigate();
+
+  const [complaints, setComplaints] = useState([]);
+  const [analytics, setAnalytics] = useState({
+    total: 0,
+    pending: 0,
+    inProgress: 0,
+    resolved: 0,
+  });
+
+  // Load complaints and analytics
+  useEffect(() => {
+    fetchComplaints();
+    fetchAnalytics();
+  }, []);
+
+  // Get all complaints
+  const fetchComplaints = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/complaints/all",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setComplaints(data);
+      } else {
+        alert(data.message || "Failed to load complaints");
+      }
+    } catch (error) {
+      console.error("Complaints error:", error);
+    }
+  };
+
+  // Get analytics
+  const fetchAnalytics = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        navigate("/");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/complaints/analytics",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAnalytics(data);
+      } else {
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.error("Analytics error:", error);
+    }
+  };
 
   // Change department
-  const handleDepartmentChange = (id, newDepartment) => {
-    setComplaints(
-      complaints.map((complaint) =>
-        complaint.id === id
-          ? { ...complaint, department: newDepartment }
-          : complaint
-      )
-    );
+  const handleDepartmentChange = async (
+    id,
+    newDepartment
+  ) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `http://localhost:5000/api/complaints/${id}/department`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            department: newDepartment,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Screen par bhi update karo
+        setComplaints((prevComplaints) =>
+          prevComplaints.map((complaint) =>
+            complaint._id === id
+              ? {
+                  ...complaint,
+                  department: newDepartment,
+                }
+              : complaint
+          )
+        );
+
+        alert("Department updated successfully");
+      } else {
+        alert(data.message || "Department update failed");
+      }
+    } catch (error) {
+      console.error("Department error:", error);
+      alert("Server se connection nahi ho pa raha");
+    }
   };
 
   // Change status
-  const handleStatusChange = (id, newStatus) => {
-    setComplaints(
-      complaints.map((complaint) =>
-        complaint.id === id
-          ? { ...complaint, status: newStatus }
-          : complaint
-      )
-    );
+  const handleStatusChange = async (
+    id,
+    newStatus
+  ) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `http://localhost:5000/api/complaints/${id}/status`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            status: newStatus,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Screen par update karo
+        setComplaints((prevComplaints) =>
+          prevComplaints.map((complaint) =>
+            complaint._id === id
+              ? {
+                  ...complaint,
+                  status: newStatus,
+                }
+              : complaint
+          )
+        );
+
+        // Analytics bhi refresh karo
+        fetchAnalytics();
+
+        alert("Status updated successfully");
+      } else {
+        alert(data.message || "Status update failed");
+      }
+    } catch (error) {
+      console.error("Status error:", error);
+      alert("Server se connection nahi ho pa raha");
+    }
   };
 
-  // Analytics
-  const totalComplaints = complaints.length;
+  // Logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
-  const pendingComplaints = complaints.filter(
-    (complaint) => complaint.status === "Pending"
-  ).length;
-
-  const progressComplaints = complaints.filter(
-    (complaint) => complaint.status === "In Progress"
-  ).length;
-
-  const resolvedComplaints = complaints.filter(
-    (complaint) => complaint.status === "Resolved"
-  ).length;
+    navigate("/");
+  };
 
   return (
     <div className="all-complaints-page">
 
       {/* Sidebar */}
       <aside className="admin-sidebar">
+
         <h2>E-Governance</h2>
 
         <nav>
-          <a href="/admin/dashboard">Dashboard</a>
-          <a href="/admin/complaints" className="active">
+
+          <Link to="/admin/dashboard">
+            Dashboard
+          </Link>
+
+          <Link
+            to="/admin/complaints"
+            className="active"
+          >
             All Complaints
-          </a>
+          </Link>
+
         </nav>
 
-        <button className="admin-logout">Logout</button>
+        <button
+          className="admin-logout"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+
       </aside>
+
 
       {/* Main Content */}
       <main className="complaints-main">
 
         {/* Header */}
         <header className="complaints-header">
+
           <div>
             <h1>All Complaints</h1>
-            <p>Manage citizen complaints and update their status</p>
+
+            <p>
+              Manage citizen complaints and update their status
+            </p>
           </div>
 
           <div className="admin-user">
             Admin
           </div>
+
         </header>
+
 
         <section className="complaints-content">
 
@@ -120,105 +254,138 @@ function AllComplaints() {
 
               <div className="analytics-card">
                 <span>Total Complaints</span>
-                <strong>{totalComplaints}</strong>
+                <strong>{analytics.total}</strong>
               </div>
 
               <div className="analytics-card">
                 <span>Pending</span>
-                <strong>{pendingComplaints}</strong>
+                <strong>{analytics.pending}</strong>
               </div>
 
               <div className="analytics-card">
                 <span>In Progress</span>
-                <strong>{progressComplaints}</strong>
+                <strong>{analytics.inProgress}</strong>
               </div>
 
               <div className="analytics-card">
                 <span>Resolved</span>
-                <strong>{resolvedComplaints}</strong>
+                <strong>{analytics.resolved}</strong>
               </div>
 
             </div>
 
-            {/* Simple Analytics Bar */}
+
+            {/* Analytics Bars */}
             <div className="analytics-bar-box">
 
+              {/* Pending */}
               <div className="bar-item">
+
                 <div className="bar-label">
                   <span>Pending</span>
-                  <span>{pendingComplaints}</span>
+                  <span>{analytics.pending}</span>
                 </div>
 
                 <div className="bar-background">
+
                   <div
                     className="bar pending-bar"
                     style={{
                       width: `${
-                        totalComplaints
-                          ? (pendingComplaints / totalComplaints) * 100
+                        analytics.total
+                          ? (analytics.pending /
+                              analytics.total) *
+                            100
                           : 0
                       }%`,
                     }}
                   ></div>
+
                 </div>
+
               </div>
 
+
+              {/* In Progress */}
               <div className="bar-item">
+
                 <div className="bar-label">
                   <span>In Progress</span>
-                  <span>{progressComplaints}</span>
+                  <span>{analytics.inProgress}</span>
                 </div>
 
                 <div className="bar-background">
+
                   <div
                     className="bar progress-bar"
                     style={{
                       width: `${
-                        totalComplaints
-                          ? (progressComplaints / totalComplaints) * 100
+                        analytics.total
+                          ? (analytics.inProgress /
+                              analytics.total) *
+                            100
                           : 0
                       }%`,
                     }}
                   ></div>
+
                 </div>
+
               </div>
 
+
+              {/* Resolved */}
               <div className="bar-item">
+
                 <div className="bar-label">
                   <span>Resolved</span>
-                  <span>{resolvedComplaints}</span>
+                  <span>{analytics.resolved}</span>
                 </div>
 
                 <div className="bar-background">
+
                   <div
                     className="bar resolved-bar"
                     style={{
                       width: `${
-                        totalComplaints
-                          ? (resolvedComplaints / totalComplaints) * 100
+                        analytics.total
+                          ? (analytics.resolved /
+                              analytics.total) *
+                            100
                           : 0
                       }%`,
                     }}
                   ></div>
+
                 </div>
+
               </div>
 
             </div>
+
           </div>
+
 
           {/* Complaints Table */}
           <div className="complaints-table-section">
 
             <div className="table-heading">
+
               <h2>Complaint List</h2>
-              <span>{totalComplaints} Complaints</span>
+
+              <span>
+                {analytics.total} Complaints
+              </span>
+
             </div>
+
 
             <div className="table-container">
 
               <table>
 
                 <thead>
+
                   <tr>
                     <th>ID</th>
                     <th>Complaint</th>
@@ -226,83 +393,148 @@ function AllComplaints() {
                     <th>Department</th>
                     <th>Status</th>
                   </tr>
+
                 </thead>
+
 
                 <tbody>
 
-                  {complaints.map((complaint) => (
+                  {complaints.length === 0 ? (
 
-                    <tr key={complaint.id}>
-
-                      <td>#{complaint.id}</td>
-
-                      <td className="complaint-title">
-                        {complaint.title}
+                    <tr>
+                      <td colSpan="5">
+                        No complaints found.
                       </td>
-
-                      <td>
-                        {complaint.citizen}
-                      </td>
-
-                      {/* Department Dropdown */}
-                      <td>
-                        <select
-                          value={complaint.department}
-                          onChange={(e) =>
-                            handleDepartmentChange(
-                              complaint.id,
-                              e.target.value
-                            )
-                          }
-                          className="department-select"
-                        >
-                          <option>Public Works</option>
-                          <option>Water Department</option>
-                          <option>Electricity</option>
-                          <option>Health Department</option>
-                          <option>Education Department</option>
-                        </select>
-                      </td>
-
-                      {/* Status Dropdown */}
-                      <td>
-                        <select
-                          value={complaint.status}
-                          onChange={(e) =>
-                            handleStatusChange(
-                              complaint.id,
-                              e.target.value
-                            )
-                          }
-                          className={`status-select ${
-                            complaint.status === "Pending"
-                              ? "status-pending"
-                              : complaint.status === "In Progress"
-                              ? "status-progress"
-                              : "status-resolved"
-                          }`}
-                        >
-                          <option>Pending</option>
-                          <option>In Progress</option>
-                          <option>Resolved</option>
-                        </select>
-                      </td>
-
                     </tr>
 
-                  ))}
+                  ) : (
+
+                    complaints.map((complaint, index) => (
+
+                      <tr key={complaint._id}>
+
+                        <td>
+                          #{index + 1}
+                        </td>
+
+                        <td className="complaint-title">
+                          {complaint.title}
+                        </td>
+
+                        <td>
+                          {complaint.citizen
+                            ? complaint.citizen.name
+                            : "Unknown"}
+                        </td>
+
+
+                        {/* Department */}
+                        <td>
+
+                          <select
+                            value={
+                              complaint.department ===
+                              "Not Assigned"
+                                ? ""
+                                : complaint.department
+                            }
+                            onChange={(e) =>
+                              handleDepartmentChange(
+                                complaint._id,
+                                e.target.value
+                              )
+                            }
+                            className="department-select"
+                          >
+
+                            <option value="">
+                              Select Department
+                            </option>
+
+                            <option value="Public Works">
+                              Public Works
+                            </option>
+
+                            <option value="Water Department">
+                              Water Department
+                            </option>
+
+                            <option value="Electricity">
+                              Electricity
+                            </option>
+
+                            <option value="Health Department">
+                              Health Department
+                            </option>
+
+                            <option value="Education Department">
+                              Education Department
+                            </option>
+
+                          </select>
+
+                        </td>
+
+
+                        {/* Status */}
+                        <td>
+
+                          <select
+                            value={complaint.status}
+                            onChange={(e) =>
+                              handleStatusChange(
+                                complaint._id,
+                                e.target.value
+                              )
+                            }
+                            className={`status-select ${
+                              complaint.status ===
+                              "Pending"
+                                ? "status-pending"
+                                : complaint.status ===
+                                  "In Progress"
+                                ? "status-progress"
+                                : "status-resolved"
+                            }`}
+                          >
+
+                            <option value="Pending">
+                              Pending
+                            </option>
+
+                            <option value="In Progress">
+                              In Progress
+                            </option>
+
+                            <option value="Resolved">
+                              Resolved
+                            </option>
+
+                          </select>
+
+                        </td>
+
+                      </tr>
+
+                    ))
+
+                  )}
 
                 </tbody>
 
               </table>
 
             </div>
+
           </div>
 
         </section>
+
       </main>
+
     </div>
   );
 }
 
 export default AllComplaints;
+

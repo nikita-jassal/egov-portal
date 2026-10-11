@@ -1,7 +1,58 @@
-import { Link } from "react-router-dom";
+
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 
 function Login() {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/users/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Token save karo
+        localStorage.setItem("token", data.token);
+
+        // User information save karo
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        alert("Login successful!");
+
+        // Role ke according page open karo
+        if (data.user.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/citizen/dashboard");
+        }
+      } else {
+        alert(data.message || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Server se connection nahi ho pa raha");
+    }
+  };
+
   return (
     <div className="login-page">
 
@@ -13,7 +64,7 @@ function Login() {
           Login to your E-Governance account
         </p>
 
-        <form>
+        <form onSubmit={handleLogin}>
 
           <div className="input-group">
             <label htmlFor="email">Email</label>
@@ -22,6 +73,9 @@ function Login() {
               type="email"
               id="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
@@ -32,6 +86,9 @@ function Login() {
               type="password"
               id="password"
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
@@ -62,3 +119,4 @@ function Login() {
 }
 
 export default Login;
+

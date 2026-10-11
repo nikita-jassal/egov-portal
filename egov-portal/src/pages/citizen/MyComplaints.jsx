@@ -1,7 +1,59 @@
+
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./MyComplaints.css";
 
 function MyComplaints() {
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchComplaints();
+  }, []);
+
+  const fetchComplaints = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Please login first");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/complaints/my",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setComplaints(data);
+      } else {
+        alert(data.message || "Failed to load complaints");
+      }
+    } catch (error) {
+      console.error("Fetch complaints error:", error);
+      alert("Server se connection nahi ho pa raha");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Date ko simple format mein show karne ke liye
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="my-complaints-page">
 
@@ -10,7 +62,9 @@ function MyComplaints() {
         <div className="complaints-header">
           <div>
             <h1>My Complaints</h1>
-            <p>View and track your submitted complaints.</p>
+            <p>
+              View and track your submitted complaints.
+            </p>
           </div>
 
           <Link
@@ -21,103 +75,61 @@ function MyComplaints() {
           </Link>
         </div>
 
-
         <div className="complaints-list">
 
-          {/* Complaint 1 */}
-          <div className="complaint-card">
+          {loading ? (
+            <p>Loading complaints...</p>
+          ) : complaints.length === 0 ? (
+            <p>No complaints submitted yet.</p>
+          ) : (
+            complaints.map((complaint) => (
 
-            <div className="complaint-info">
-              <h2>Road Damage</h2>
+              <div
+                className="complaint-card"
+                key={complaint._id}
+              >
 
-              <p>
-                <strong>Department:</strong> Public Works
-              </p>
+                <div className="complaint-info">
 
-              <p>
-                <strong>Location:</strong> Main Road
-              </p>
+                  <h2>{complaint.title}</h2>
 
-              <p>
-                <strong>Date:</strong> 21 Aug 2026
-              </p>
-            </div>
+                  <p>
+                    <strong>Department:</strong>{" "}
+                    {complaint.department}
+                  </p>
 
-            <div className="complaint-status">
-              <span className="status pending">
-                Pending
-              </span>
+                  <p>
+                    <strong>Location:</strong>{" "}
+                    {complaint.location}
+                  </p>
 
-              <Link to="#">
-                View Details
-              </Link>
-            </div>
+                  <p>
+                    <strong>Date:</strong>{" "}
+                    {formatDate(complaint.createdAt)}
+                  </p>
 
-          </div>
+                </div>
 
+                <div className="complaint-status">
 
-          {/* Complaint 2 */}
-          <div className="complaint-card">
+                  <span
+                    className={`status ${
+                      complaint.status === "Pending"
+                        ? "pending"
+                        : complaint.status === "In Progress"
+                        ? "progress"
+                        : "resolved"
+                    }`}
+                  >
+                    {complaint.status}
+                  </span>
 
-            <div className="complaint-info">
-              <h2>Water Supply Issue</h2>
+                </div>
 
-              <p>
-                <strong>Department:</strong> Water Department
-              </p>
+              </div>
 
-              <p>
-                <strong>Location:</strong> Sector 5
-              </p>
-
-              <p>
-                <strong>Date:</strong> 18 Aug 2026
-              </p>
-            </div>
-
-            <div className="complaint-status">
-              <span className="status progress">
-                In Progress
-              </span>
-
-              <Link to="#">
-                View Details
-              </Link>
-            </div>
-
-          </div>
-
-
-          {/* Complaint 3 */}
-          <div className="complaint-card">
-
-            <div className="complaint-info">
-              <h2>Street Light</h2>
-
-              <p>
-                <strong>Department:</strong> Electricity
-              </p>
-
-              <p>
-                <strong>Location:</strong> Near Market
-              </p>
-
-              <p>
-                <strong>Date:</strong> 15 Aug 2026
-              </p>
-            </div>
-
-            <div className="complaint-status">
-              <span className="status resolved">
-                Resolved
-              </span>
-
-              <Link to="#">
-                View Details
-              </Link>
-            </div>
-
-          </div>
+            ))
+          )}
 
         </div>
 
@@ -128,3 +140,4 @@ function MyComplaints() {
 }
 
 export default MyComplaints;
+
