@@ -1,16 +1,46 @@
-# React + Vite
+React
+E-Governance Dashboard with Analytics
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+ About the Project
+E-Governance Dashboard is a web-based application that helps citizens submit complaints and track their status. Administrators can manage complaints, update their status, and monitor complaint statistics.
 
-Currently, two official plugins are available:
+Features
+- Citizen Registration and Login
+- Submit Complaints
+- View My Complaints
+- Admin Dashboard
+- View and Manage Complaints
+- Department-wise Complaint Filtering
+- Update Complaint Status
+- Complaint Analytics
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+ Technologies Used
+- Frontend: React.js, JavaScript, HTML, CSS
+- Backend: Node.js, Express.js
+- Database: MongoDB
+- Tools: VS Code, Git, GitHub
 
-## React Compiler
+Project Structure
+- egov-portal – Frontend application
+- backend – Backend application
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+ How to Run the Project
 
-## Expanding the Oxlint configuration
+Frontend
+1. Open the egov-portal folder in the terminal.
+2. Run npm install.
+3. Run npm run dev.
+4. Open the local URL displayed in the terminal.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Backend
+1. Open the backend folder in a separate terminal.
+2. Run npm install.
+3. Configure the .env file with your MongoDB connection string and other required environment variables.
+4. Start the backend using the start command configured in package.json.
+
+ Future Enhancements
+- Improved complaint analytics
+- Complaint notifications
+- Enhanced security
+
+
